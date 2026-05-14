@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lawrence Wong - Digital Card</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; overflow-x: hidden; }
+        .handwritten { font-family: 'Great Vibes', cursive; }
+        .aspect-9-16 { aspect-ratio: 9 / 16; }
+        @media (max-width: 640px) {
+            .mobile-full { height: 100vh; width: 100vw; aspect-ratio: auto; }
+        }
+        .cluster-container { position: relative; height: 280px; width: 100%; overflow: visible; }
+        .logo-circle {
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: absolute;
+            cursor: pointer;
+            user-select: none;
+        }
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .scale-up-center {
+            animation: scale-up-center 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+        }
+        @keyframes scale-up-center {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Icon = ({ name, size = 16, className = "" }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState('en');
+            const [showQr, setShowQr] = useState(false);
+            const [activeId, setActiveId] = useState('mygreenplus');
+
+            const brandData = {
+                hma: {
+                    name: "HMA DIGITAL",
+                    logo: "https://imgur.com/46sIs1o.png",
+                    url: "https://www.hmadigital.asia",
+                    theme: "blue",
+                    content: {
+                        en: "A creative digital agency specializing in growth strategies, digital transformation, and brand elevation.",
+                        zh: "专注于增长战略、数字化转型和品牌提升的创意数字代理机构。"
+                    }
+                },
+                mygreenplus: {
+                    name: "MYGREENPLUS",
+                    logo: "https://imgur.com/EFoStmS.png",
+                    url: "https://www.mygreenplus.com",
+                    theme: "emerald",
+                    content: {
+                        en: "Leading the way in sustainable green solutions and environmental innovation for modern enterprises.",
+                        zh: "为现代企业提供可持续绿色解决方案和环境创新技术的行业领跑者。"
+                    }
+                },
+                nazfam: {
+                    name: "NAZFAM Toilet Cubicle System",
+                    logo: null,
+                    url: "https://nbn-cubicle.vercel.app/",
+                    theme: "slate",
+                    content: {
+                        en: "A leading & experienced company of Toilet Cubicle System for public lavatory.",
+                        zh: "公共洗手间厕所隔断系统的行业领先且经验丰富的公司。"
+                    }
+                }
+            };
+
+            const ui = {
+                en: { 
+                    founder: "THE FOUNDER OF...", 
+                    save: "Save Contact", 
+                    scan: "Share Card",
+                    visit: "Click to view website",
+                    qr_title: "Scan to View Profile",
+                    qr_desc: "Open this page on another device"
+                },
+                zh: { 
+                    founder: "创始人 / 创办人", 
+                    save: "保存联系方式", 
+                    scan: "分享名片",
+                    visit: "点击访问官网",
+                    qr_title: "扫码查看资料",
+                    qr_desc: "在其他设备上打开此页面"
+                }
+            };
+
+            const t = ui[lang];
+
+            const handleSaveContact = () => {
+                const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:Lawrence Wong\nORG:Mygreenplus;Hma digital;Nazfam\nTEL;TYPE=CELL:+60165506664\nEMAIL:lawrencew7729@gmail.com\nURL:http://www.mygreenplus.com\nEND:VCARD`;
+                const blob = new Blob([vcard], { type: 'text/vcard' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'Lawrence_Wong_Contact.vcf');
+                link.click();
+            };
+
+            const getCircleStyle = (id) => {
+                const order = ['hma', 'mygreenplus', 'nazfam'];
+                const activeIdx = order.indexOf(activeId);
+                const currentIdx = order.indexOf(id);
+                
+                let diff = currentIdx - activeIdx;
+                if (diff === 2) diff = -1;
+                if (diff === -2) diff = 1;
+
+                if (diff === 0) {
+                    return {
+                        transform: 'translateX(0) scale(1.15)',
+                        zIndex: 30,
+                        opacity: 1,
+                        width: '180px',
+                        height: '180px',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.18)'
+                    };
+                } else if (diff === -1) {
+                    return {
+                        transform: 'translateX(-95px) scale(0.65)',
+                        zIndex: 10,
+                        opacity: 0.4,
+                        width: '160px',
+                        height: '160px'
+                    };
+                } else {
+                    return {
+                        transform: 'translateX(95px) scale(0.65)',
+                        zIndex: 10,
+                        opacity: 0.4,
+                        width: '160px',
+                        height: '160px'
+                    };
+                }
+            };
+
+            return (
+                <div className="flex items-center justify-center min-h-screen">
+                    <div className="w-full max-w-[450px] aspect-9-16 mobile-full bg-white shadow-2xl relative overflow-hidden flex flex-col">
+                        
+                        {/* Language Toggle */}
+                        <div className="absolute top-4 right-4 z-30 flex gap-1">
+                            <button onClick={() => setLang('en')} className={`px-3 py-1 rounded-full text-[10px] font-black transition ${lang === 'en' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/80 border border-slate-200 text-slate-400'}`}>EN</button>
+                            <button onClick={() => setLang('zh')} className={`px-3 py-1 rounded-full text-[10px] font-black transition ${lang === 'zh' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white/80 border border-slate-200 text-slate-400'}`}>中文</button>
+                        </div>
+
+                        {/* Top Profile Area */}
+                        <div className="p-6 pt-10 flex justify-between items-start">
+                            <div className="flex flex-col">
+                                <div className="w-24 h-24 rounded-full border-4 border-white shadow-xl overflow-hidden ring-4 ring-emerald-50">
+                                    <img src="https://imgur.com/aphxkgy.png" alt="Profile" className="w-full h-full object-cover" />
+                                </div>
+                                <div className="mt-3">
+                                    <span className="handwritten text-4xl text-slate-800 tracking-wide leading-none animate-in fade-in duration-1000">Lawrence Wong</span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col gap-2 w-32">
+                                <a href="https://wa.me/60165506664" className="flex items-center justify-center gap-2 bg-emerald-500 text-white py-2 rounded-xl text-[10px] font-black shadow-md active:scale-95 transition-all"><Icon name="message-circle" size={14}/> WhatsApp</a>
+                                <a href="mailto:lawrencew7729@gmail.com" className="flex items-center justify-center gap-2 bg-blue-500 text-white py-2 rounded-xl text-[10px] font-black shadow-md active:scale-95 transition-all"><Icon name="mail" size={14}/> Email</a>
+                                <button onClick={handleSaveContact} className="flex items-center justify-center gap-2 bg-slate-800 text-white py-2 rounded-xl text-[10px] font-black shadow-md active:scale-95 transition-all"><Icon name="user-plus" size={14}/> {t.save}</button>
+                            </div>
+                        </div>
+
+                        {/* Middle Content - Brand Clusters */}
+                        <div className="flex-1 flex flex-col items-center px-6 overflow-hidden pt-1">
+                            <p className="text-slate-300 text-[11px] font-black tracking-[0.3em] uppercase mb-4">{t.founder}</p>
+                            
+                            <div className="cluster-container flex items-center justify-center">
+                                {/* HMA Digital */}
+                                <div onClick={() => setActiveId('hma')} style={getCircleStyle('hma')} className="logo-circle bg-blue-50 border-4 border-blue-200 overflow-hidden">
+                                    <img src="https://imgur.com/46sIs1o.png" className="w-1/2 h-1/2 object-contain" />
+                                </div>
+
+                                {/* Mygreenplus */}
+                                <div onClick={() => setActiveId('mygreenplus')} style={getCircleStyle('mygreenplus')} className="logo-circle bg-white border-4 border-emerald-500 overflow-hidden">
+                                    <div className="flex flex-col items-center">
+                                        <img src="https://imgur.com/EFoStmS.png" className="w-3/5 h-3/5 object-contain" />
+                                        <span className="text-[8px] font-black text-emerald-600 tracking-tighter uppercase mt-1">Mygreenplus</span>
+                                    </div>
+                                </div>
+
+                                {/* Nazfam - Vertical Text Version */}
+                                <div onClick={() => setActiveId('nazfam')} style={getCircleStyle('nazfam')} className="logo-circle bg-slate-900 border-4 border-slate-700 overflow-hidden">
+                                    <div className="flex items-center gap-2">
+                                        <div className="vertical-text text-white font-black text-xs">NAZFAM</div>
+                                        <div className="flex flex-col justify-center border-l border-slate-700 pl-2">
+                                            <div className="text-[7px] text-slate-500 font-bold tracking-widest leading-tight">TOILET</div>
+                                            <div className="text-[7px] text-slate-500 font-bold tracking-widest leading-tight">CUBICLE</div>
+                                            <div className="text-[7px] text-slate-500 font-bold tracking-widest leading-tight text-emerald-500">SYSTEM</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {}
+                            <div className="mt-4 text-center max-w-xs transition-all duration-500">
+                                <h2 className={`text-sm font-black mb-2 tracking-widest uppercase ${brandData[activeId].theme === 'emerald' ? 'text-emerald-600' : brandData[activeId].theme === 'blue' ? 'text-blue-600' : 'text-slate-800'}`}>
+                                    {brandData[activeId].name}
+                                </h2>
+                                <p className="text-slate-500 text-[13px] leading-relaxed font-medium min-h-[60px] px-2">
+                                    {brandData[activeId].content[lang]}
+                                </p>
+                                
+                                <a href={brandData[activeId].url} target="_blank" className={`inline-flex items-center gap-2 mt-4 text-[10px] font-black px-8 py-3 rounded-2xl text-white shadow-xl transition-all active:scale-90 ${brandData[activeId].theme === 'emerald' ? 'bg-emerald-600' : brandData[activeId].theme === 'blue' ? 'bg-blue-600' : 'bg-slate-800'}`}>
+                                    <Icon name="external-link" size={14}/> {t.visit}
+                                </a>
+                                
+                                <div className="flex justify-center gap-2 mt-6">
+                                    <div className={`w-6 h-1 rounded-full transition-all duration-500 ${activeId === 'hma' ? 'bg-blue-500 w-10' : 'bg-slate-200'}`}></div>
+                                    <div className={`w-6 h-1 rounded-full transition-all duration-500 ${activeId === 'mygreenplus' ? 'bg-emerald-500 w-10' : 'bg-slate-200'}`}></div>
+                                    <div className={`w-6 h-1 rounded-full transition-all duration-500 ${activeId === 'nazfam' ? 'bg-slate-800 w-10' : 'bg-slate-200'}`}></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer (QR Section) */}
+                        <div className="p-6 flex justify-between items-center border-t border-slate-50 bg-white">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-800 tracking-tight leading-none uppercase">Lawrence Wong</span>
+                                <span className="text-[8px] text-slate-300 font-bold uppercase mt-1 tracking-[0.2em]">Digital Business Profile</span>
+                            </div>
+                            
+                            <button onClick={() => setShowQr(true)} className="flex flex-col items-center gap-1 group">
+                                <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-emerald-50 transition-all active:scale-90 shadow-sm border border-slate-100">
+                                    <Icon name="qr-code" size={24} className="text-slate-400 group-hover:text-emerald-500" />
+                                </div>
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">{t.scan}</span>
+                            </button>
+                        </div>
+
+                        {}
+                        {showQr && (
+                            <div className="absolute inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-8" onClick={() => setShowQr(false)}>
+                                <div className="bg-white p-8 rounded-[40px] shadow-2xl flex flex-col items-center gap-6 scale-up-center" onClick={e => e.stopPropagation()}>
+                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
+                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.href)}`} alt="Page QR" className="w-56 h-56" />
+                                    </div>
+                                    <div className="text-center">
+                                        <h3 className="font-black text-xl text-slate-800 tracking-tight">{t.qr_title}</h3>
+                                        <p className="text-slate-400 text-xs mt-1 font-medium">{t.qr_desc}</p>
+                                    </div>
+                                    <button onClick={() => setShowQr(false)} className="mt-2 w-full py-4 bg-slate-100 rounded-2xl font-black text-slate-500 text-sm active:bg-slate-200 transition">CLOSE</button>
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
